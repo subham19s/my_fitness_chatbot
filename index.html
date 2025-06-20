@@ -16,13 +16,8 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        // The entire React application code goes here.
-        // I've copied the latest version from our conversation.
-
         const { useState, useEffect, useRef } = React;
 
-        // --- IMPORTANT ---
-        // This is now the *default* data, used only if no saved data is found in the browser's storage.
         const defaultLifestyleData = {
           "personalDetails": {
             "name": "Subham Thakur",
@@ -30,7 +25,7 @@
             "dietaryPreference": "Loves a non-veg-heavy diet, occasionally swaps rotis for rice."
           },
           "dailyRoutine": {
-            "morning": "Starts day at 9 AM with water. 26-40 minute HIIT workout at 9:15 AM using resistance bands (Zing Coach App routines). Trains 7 days a week. 5-10 minutes of post-workout stretching.",
+            "morning": "Starts day at 9 AM with water. 26-40 minute HIIT workout at 9:15 AM using resistance bands, following daily superset routines from the Zing Coach App. Trains 7 days a week.",
             "breakfast": "10:15-10:30 AM: Fruit smoothie (muskmelon, watermelon, pomegranate, papaya), two egg whites, one scoop of AS-IT-IS ATOM Nitro Whey protein with creatine.",
             "work": "Desk job from 11:15 AM, stays lightly active by walking around the office.",
             "lunch": "1:15 PM: Grilled chicken salad (200-250 g) with various veggies. On weekends, around 3 PM, has rice with veggies and fish or mutton.",
@@ -66,9 +61,6 @@
           }
         };
 
-
-        // --- Helper Components ---
-
         const Icon = ({ path, className = "w-6 h-6" }) => (
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
             <path strokeLinecap="round" strokeLinejoin="round" d={path} />
@@ -82,20 +74,12 @@
             </svg>
         );
 
-        // --- NEW MODAL COMPONENT ---
         const UpdateDataModal = ({ isOpen, onClose, onUpdate, isLoading }) => {
             const [pastedText, setPastedText] = useState('');
-
             if (!isOpen) return null;
-
-            const handleUpdate = () => {
-                if (pastedText.trim()) {
-                    onUpdate(pastedText);
-                }
-            };
-
+            const handleUpdate = () => { if (pastedText.trim()) { onUpdate(pastedText); } };
             return (
-                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
                     <div className="bg-white rounded-lg p-6 w-full max-w-lg shadow-xl">
                         <h2 className="text-xl font-bold mb-4">Update Your Lifestyle Data</h2>
                         <p className="text-sm text-gray-600 mb-4">Copy the text from your PDF or notes and paste it below. The AI will convert it to the right format.</p>
@@ -117,23 +101,8 @@
             );
         };
 
-
-        // --- Main Application Components ---
-
         const LifestyleSidebar = ({ data }) => {
-            if (!data) {
-                return (
-                    <div className="w-full lg:w-1/3 bg-gray-50 border-l border-ray-200 p-6 hidden lg:block animate-pulse">
-                        <div className="h-6 bg-gray-200 rounded w-2/3 mb-6"></div>
-                        <div className="space-y-6">
-                            <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
-                            <div className="h-3 bg-gray-200 rounded w-full mb-1"></div>
-                            <div className="h-3 bg-gray-200 rounded w-5/6"></div>
-                        </div>
-                    </div>
-                );
-            }
-
+            if (!data) return <div className="w-full lg:w-1/3 bg-gray-50 border-l border-gray-200 p-6 hidden lg:block animate-pulse"></div>;
             return (
               <div className="w-full lg:w-1/3 bg-gray-50 border-l border-gray-200 p-6 overflow-y-auto h-full hidden lg:block">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Your Fitness Snapshot</h2>
@@ -165,70 +134,88 @@
             );
         };
 
-
-        const Message = ({ sender, text }) => {
+        const Message = ({ sender, text, imageUrl }) => {
           const isJay = sender === 'jay';
           const simpleMarkdownParser = (rawText) => {
             if (!rawText) return '';
-            const html = rawText
-              .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold text-gray-900 mt-3 mb-2">$1</h3>')
-              .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold text-gray-900 mt-4 mb-2">$1</h2>')
-              .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold text-gray-900 mt-4 mb-2">$1</h1>')
-              .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-              .replace(/\n/g, '<br />')
-              .replace(/(<\/h[1-3]>)<br \/>/g, '$1'); 
+            const html = rawText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br />');
             return html;
           };
           const content = isJay ? <div dangerouslySetInnerHTML={{ __html: simpleMarkdownParser(text) }} /> : text;
           return (
             <div className={`flex items-start gap-3 my-4 ${isJay ? 'justify-start' : 'justify-end'}`}>
               {isJay && (<div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0"><JayIcon /></div>)}
-              <div className={`max-w-xl p-4 rounded-2xl whitespace-normal ${isJay ? 'bg-gray-100 text-gray-800 rounded-bl-lg' : 'bg-blue-500 text-white rounded-br-lg'}`}>{content}</div>
+              <div className={`max-w-xl p-4 rounded-2xl whitespace-normal ${isJay ? 'bg-gray-100 text-gray-800 rounded-bl-lg' : 'bg-blue-500 text-white rounded-br-lg'}`}>
+                {imageUrl && <img src={imageUrl} className="rounded-lg mb-2 max-w-xs" />}
+                {content}
+              </div>
               {!isJay && (<div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0"><UserIcon /></div>)}
             </div>
           );
         };
-
 
         const ChatWindow = ({ messages, isLoading }) => {
           const chatEndRef = useRef(null);
           useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, isLoading]);
           return (
             <div className="flex-1 p-6 overflow-y-auto">
-              {messages.map((msg, index) => <Message key={index} sender={msg.sender} text={msg.text} />)}
+              {messages.map((msg, index) => <Message key={index} sender={msg.sender} text={msg.text} imageUrl={msg.imageUrl} />)}
               {isLoading && (<div className="flex items-start gap-3 my-4 justify-start"><div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0"><JayIcon /></div><div className="max-w-md p-4 rounded-2xl bg-gray-100 text-gray-800 rounded-bl-lg"><div className="flex items-center space-x-2"><div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div><div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse [animation-delay:0.2s]"></div><div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse [animation-delay:0.4s]"></div></div></div></div>)}
               <div ref={chatEndRef} />
             </div>
           );
         };
 
-        const ActionButtons = ({ onGetMealIdeas, onGetWorkoutSuggestion, isLoading }) => (
+        const ActionButtons = ({ onGetMealIdeas, onGetWorkoutSuggestion, onAnalyzeSupplements, onGetPepTalk, isLoading }) => (
             <div className="px-6 pb-2 border-t border-gray-200">
-                <div className="flex flex-col sm:flex-row gap-2 pt-4">
-                    <button onClick={onGetMealIdeas} disabled={isLoading} className="w-full flex-1 bg-teal-50 hover:bg-teal-100 text-teal-800 font-semibold py-2 px-4 rounded-lg transition-colors disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed">✨ Get Meal Ideas</button>
-                    <button onClick={onGetWorkoutSuggestion} disabled={isLoading} className="w-full flex-1 bg-purple-50 hover:bg-purple-100 text-purple-800 font-semibold py-2 px-4 rounded-lg transition-colors disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed">✨ Suggest a Workout</button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-4">
+                    <button onClick={onGetMealIdeas} disabled={isLoading} className="w-full bg-teal-50 hover:bg-teal-100 text-teal-800 font-semibold py-2 px-4 rounded-lg transition-colors disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed">✨ Get Meal Ideas</button>
+                    <button onClick={onGetWorkoutSuggestion} disabled={isLoading} className="w-full bg-purple-50 hover:bg-purple-100 text-purple-800 font-semibold py-2 px-4 rounded-lg transition-colors disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed">✨ Suggest a Workout</button>
+                    <button onClick={onAnalyzeSupplements} disabled={isLoading} className="w-full bg-sky-50 hover:bg-sky-100 text-sky-800 font-semibold py-2 px-4 rounded-lg transition-colors disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed">✨ Analyze My Supplements</button>
+                    <button onClick={onGetPepTalk} disabled={isLoading} className="w-full bg-amber-50 hover:bg-amber-100 text-amber-800 font-semibold py-2 px-4 rounded-lg transition-colors disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed">✨ Give Me a Pep Talk</button>
                 </div>
             </div>
         );
 
-
-        const UserInput = ({ onSend, isLoading, onOpenModal }) => {
+        const UserInput = ({ onSend, isLoading, onOpenModal, attachedImage, setAttachedImage, cooldown }) => {
           const [text, setText] = useState('');
           const textareaRef = useRef(null);
-          const handleSend = () => { if (text.trim() && !isLoading) { onSend(text); setText(''); if(textareaRef.current) textareaRef.current.style.height = 'auto'; }};
+          const fileInputRef = useRef(null);
+          const isDisabled = isLoading || cooldown > 0;
+          
+          const handleSend = () => { if ((text.trim() || attachedImage) && !isDisabled) { onSend(text, attachedImage); setText(''); setAttachedImage(null); if(textareaRef.current) textareaRef.current.style.height = 'auto'; }};
           const handleKeyDown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }};
           const handleInput = (e) => { setText(e.target.value); if (textareaRef.current) { textareaRef.current.style.height = 'auto'; textareaRef.current.style.height = `${e.target.scrollHeight}px`; }};
+          
+          const handleFileChange = (event) => {
+              const file = event.target.files[0];
+              if (file && file.type.startsWith('image/')) {
+                  const reader = new FileReader();
+                  reader.onloadend = () => { setAttachedImage({ data: reader.result, type: file.type }); };
+                  reader.readAsDataURL(file);
+              }
+              event.target.value = null; 
+          };
+
           return (
             <div className="bg-white p-4 pt-2">
+              {attachedImage && (
+                  <div className="mb-2 p-2 bg-gray-200 rounded-lg flex items-center justify-between">
+                      <img src={attachedImage.data} className="w-12 h-12 rounded object-cover" />
+                      <span className="text-sm text-gray-700 mx-2">Image attached</span>
+                      <button onClick={() => setAttachedImage(null)} className="p-1 text-gray-500 hover:text-red-500 rounded-full"><Icon path="M6 18L18 6M6 6l12 12" className="w-5 h-5" /></button>
+                  </div>
+              )}
               <div className="flex items-center bg-gray-100 rounded-xl p-2">
-                <textarea ref={textareaRef} value={text} onChange={handleInput} onKeyDown={handleKeyDown} placeholder="Ask Jay anything about your fitness..." className="w-full bg-transparent p-2 text-gray-700 focus:outline-none resize-none" rows="1" disabled={isLoading}/>
-                <button onClick={handleSend} disabled={isLoading || !text.trim()} className="p-2 mr-2 rounded-full text-white bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors"><Icon path="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" className="w-6 h-6" /></button>
-                 <button onClick={onOpenModal} title="Update My Data" className="p-2 rounded-full text-gray-500 bg-gray-200 hover:bg-gray-300 transition-colors"><Icon path="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.667 0l3.181-3.183m-4.991-2.691L7.5 5.992m0 0l3.182 3.182M7.5 5.992l3.181-3.182" className="w-6 h-6" /></button>
+                <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
+                <button onClick={() => fileInputRef.current.click()} title="Attach Image" disabled={isDisabled} className="p-2 text-gray-500 hover:text-blue-500 disabled:text-gray-300"><Icon path="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.122 2.122l7.81-7.81" className="w-6 h-6" /></button>
+                <textarea ref={textareaRef} value={text} onChange={handleInput} onKeyDown={handleKeyDown} placeholder={cooldown > 0 ? `Rate limit reached. Please wait ${cooldown}s` : "Ask Jay anything, or attach an image..."} className="w-full bg-transparent p-2 text-gray-700 focus:outline-none resize-none" rows="1" disabled={isDisabled}/>
+                <button onClick={handleSend} disabled={isDisabled || (!text.trim() && !attachedImage)} className="p-2 mr-2 rounded-full text-white bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors"><Icon path="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" className="w-6 h-6" /></button>
+                 <button onClick={onOpenModal} title="Update My Data" disabled={isDisabled} className="p-2 rounded-full text-gray-500 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 transition-colors"><Icon path="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.667 0l3.181-3.183m-4.991-2.691L7.5 5.992m0 0l3.182 3.182M7.5 5.992l3.181-3.182" className="w-6 h-6" /></button>
               </div>
             </div>
           );
         };
-
 
         function App() {
           const [messages, setMessages] = useState([]);
@@ -236,17 +223,19 @@
           const [lifestyleData, setLifestyleData] = useState(null);
           const [isModalOpen, setIsModalOpen] = useState(false);
           const [modalIsLoading, setModalIsLoading] = useState(false);
+          const [selectedModel, setSelectedModel] = useState('gemini-1.5-flash-latest');
+          const [attachedImage, setAttachedImage] = useState(null);
+          const [cooldown, setCooldown] = useState(0);
 
           useEffect(() => {
             try {
                 const savedData = localStorage.getItem('savedLifestyleData');
                 if (savedData) {
-                    const parsedData = JSON.parse(savedData);
-                    setLifestyleData(parsedData);
+                    const parsedData = JSON.parse(savedData); setLifestyleData(parsedData);
                     setMessages([{ sender: 'jay', text: `Welcome back, ${parsedData.personalDetails.name}! I've loaded your saved data. What are we focusing on today?` }]);
                 } else {
                     setLifestyleData(defaultLifestyleData);
-                    setMessages([{ sender: 'jay', text: `Hey ${defaultLifestyleData.personalDetails.name}! It's Jay, your fitness partner. I've got your latest lifestyle details loaded up. What's on your mind today?` }]);
+                    setMessages([{ sender: 'jay', text: `Hey ${defaultLifestyleData.personalDetails.name}! It's Jay, your fitness partner. Let's get started!` }]);
                 }
             } catch (error) {
                 console.error("Could not load or parse saved data, using default.", error);
@@ -254,70 +243,97 @@
             }
           }, []);
 
-          const callGeminiAPI = async (prompt) => {
-            const apiKey = "";
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+          useEffect(() => {
+              if (cooldown > 0) {
+                  const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+                  return () => clearTimeout(timer);
+              }
+          }, [cooldown]);
+          
+          const handleModelChange = (e) => {
+              const newModel = e.target.value;
+              const modelName = e.target.options[e.target.selectedIndex].text;
+              setSelectedModel(newModel);
+              setCooldown(0); // Immediately reset cooldown on model change
+              setMessages(prev => [...prev, { sender: 'jay', text: `Okay, I've switched my brain to the ${modelName} model for you.` }]);
+          };
+
+          const callGeminiAPI = async (prompt, image = null) => {
+            const apiKey = "AIzaSyAtaNfqB0rcuTQnha7JYATFAUKz0SluHac";
+            let model = selectedModel;
+            const visionModels = ['gemini-1.5-pro-latest', 'gemini-1.5-flash-latest', 'gemini-1.0-pro-vision-latest'];
+            
+            if (image && !visionModels.includes(model)) {
+                model = 'gemini-1.5-flash-latest';
+                setMessages(prev => [...prev, { sender: 'jay', text: `Heads up! The selected model can't see images, so I've switched to Gemini 1.5 Flash for this one.` }]);
+            }
+            
+            const handleError = (error) => {
+                console.error(`Error calling ${model} API:`, error);
+                if (error && error.status === 429) {
+                    setCooldown(60); 
+                    if(error.message && error.message.includes("RESOURCE_EXHAUSTED")){
+                         return `Looks like we've hit the daily free limit for the **${model}** model. Try switching to a different model (like Gemini 1.5 Flash) to keep chatting!`;
+                    }
+                    return "Looks like we're a bit too eager! I've hit the request limit. Please wait while I cool down for 60 seconds.";
+                }
+                return `I'm having trouble thinking right now. The API returned an error: ${error.status || 'Unknown'}. Please try again later.`;
+            }
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:${model === 'aqa' ? 'generateAnswer' : 'generateContent'}?key=${apiKey}`;
+            
             try {
-                const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+                const parts = [{ text: prompt }];
+                if (image) {
+                    parts.push({ inline_data: { mime_type: image.type, data: image.data.split(',')[1] } });
+                }
+                const payload = { contents: [{ role: "user", parts: parts }] };
+                if (model === 'aqa') delete payload.contents[0].role;
+                
                 const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (!response.ok) throw new Error(`API call failed: ${response.status}`);
+                if (!response.ok) throw { status: response.status, message: await response.text() };
                 const result = await response.json();
+                
+                if (model === 'aqa') return result.answer?.text || "The AQA model couldn't find a grounded answer for this.";
                 return result.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I had a bit of trouble connecting.";
             } catch (error) {
-                console.error("Error calling Gemini API:", error);
-                return "I'm having some trouble thinking right now. Please try again.";
+                return handleError(error);
             }
           };
 
           const handleUpdateData = async (pastedText) => {
             setModalIsLoading(true);
-            const conversionPrompt = `
-                Convert the following raw text into a JSON object with the exact structure shown in the example. The keys must be identical. Extract all relevant details from the text.
-
-                ### EXAMPLE JSON STRUCTURE ###
-                ${JSON.stringify(defaultLifestyleData, null, 2)}
-                
-                ### RAW TEXT TO CONVERT ###
-                ${pastedText}
-            `;
+            const conversionPrompt = `Convert the following raw text into a JSON object with the exact structure shown in the example. The keys must be identical. Extract all relevant details from the text. ### EXAMPLE JSON STRUCTURE ### ${JSON.stringify(defaultLifestyleData, null, 2)} ### RAW TEXT TO CONVERT ### ${pastedText}`;
 
             try {
                 const jsonString = await callGeminiAPI(conversionPrompt);
                 const cleanedJsonString = jsonString.replace(/```json/g, '').replace(/```/g, '').trim();
                 const newLifestyleData = JSON.parse(cleanedJsonString);
-                
                 setLifestyleData(newLifestyleData);
                 localStorage.setItem('savedLifestyleData', JSON.stringify(newLifestyleData));
-                
-                setMessages(prev => [...prev, { sender: 'jay', text: `Thanks! I've updated your lifestyle data based on the info you provided.`}]);
+                setMessages(prev => [...prev, { sender: 'jay', text: `Thanks! I've updated your lifestyle data.`}]);
                 setIsModalOpen(false);
-
             } catch (error) {
                 console.error("Failed to convert text to JSON:", error);
-                setMessages(prev => [...prev, { sender: 'jay', text: `I had trouble understanding that text. Could you try pasting it again, or make sure it's clearly formatted?`}]);
+                setMessages(prev => [...prev, { sender: 'jay', text: `I had trouble understanding that text. Could you try pasting it again?`}]);
             } finally {
                 setModalIsLoading(false);
             }
           };
 
-          const handleSend = async (userInput) => {
-            const newUserMessage = { sender: 'user', text: userInput };
+          const handleSend = async (userInput, image) => {
+            const newUserMessage = { sender: 'user', text: userInput, imageUrl: image?.data };
             setMessages(prev => [...prev, newUserMessage]);
             setIsLoading(true);
-
-            const lifestyleString = JSON.stringify(lifestyleData, null, 2);
-            const history = messages.map(m => `${m.sender === 'jay' ? 'Jay' : 'Me'}: ${m.text}`).join('\n');
-            const prompt = `You are "Jay, my Fitness Partner." My lifestyle info is below. Respond to my latest message. My Lifestyle: ${lifestyleString}. History: ${history}. Me: ${userInput}`;
-            
-            const jayResponseText = await callGeminiAPI(prompt);
+            const prompt = `You are "Jay, my Fitness Partner." My lifestyle info is: My goal is ${lifestyleData.personalDetails.goal}. I prefer a ${lifestyleData.personalDetails.dietaryPreference}. My workout is ${lifestyleData.dailyRoutine.workout}. My sleep is ${lifestyleData.dailyRoutine.sleep}. Now, respond to my latest message. History: ${messages.slice(-4).map(m => `${m.sender}: ${m.text}`).join('\n')}. Me: ${userInput}`;
+            const jayResponseText = await callGeminiAPI(prompt, image);
             setMessages(prev => [...prev, { sender: 'jay', text: jayResponseText.trim() }]);
             setIsLoading(false);
           };
           
           const handleGetMealIdeas = async () => {
             setIsLoading(true);
-            const lifestyleString = JSON.stringify(lifestyleData, null, 2);
-            const prompt = `You are "Jay, my Fitness Partner." Based on my lifestyle details below, generate 3 creative and healthy dinner ideas for me. I want to get lean and I love non-veg Bengali food. Make it sound exciting! Use markdown for formatting. My Lifestyle: ${lifestyleString}`;
+            const prompt = `You are "Jay, my Fitness Partner." Based on my lifestyle (goal: ${lifestyleData.personalDetails.goal}, diet: ${lifestyleData.personalDetails.dietaryPreference}), generate 3 creative and healthy dinner ideas for me.`;
             const jayResponseText = await callGeminiAPI(prompt);
             setMessages(prev => [...prev, { sender: 'jay', text: jayResponseText.trim() }]);
             setIsLoading(false);
@@ -325,33 +341,65 @@
           
           const handleGetWorkoutSuggestion = async () => {
             setIsLoading(true);
-            const lifestyleString = JSON.stringify(lifestyleData, null, 2);
-            const prompt = `You are "Jay, my Fitness Partner." I do HIIT 7 days a week. Suggest 2 alternative intense workout ideas (30-40 min) to prevent boredom. Explain why each is a good change. Use markdown. My Lifestyle: ${lifestyleString}`;
+            const prompt = `You are "Jay, my Fitness Partner." I do HIIT 7 days a week. Suggest 2 alternative intense workout ideas (30-40 min).`;
+            const jayResponseText = await callGeminiAPI(prompt);
+            setMessages(prev => [...prev, { sender: 'jay', text: jayResponseText.trim() }]);
+            setIsLoading(false);
+          };
+
+          const handleAnalyzeSupplements = async () => {
+            setIsLoading(true);
+            const prompt = `Act as a knowledgeable fitness partner. Here is my supplement schedule: ${JSON.stringify(lifestyleData.supplementSchedule)}. Briefly explain the main purpose of these supplements in a friendly, encouraging tone. Do not give medical advice.`;
+            const jayResponseText = await callGeminiAPI(prompt);
+            setMessages(prev => [...prev, { sender: 'jay', text: `Here's a quick look at your supplement lineup:\n\n${jayResponseText.trim()}` }]);
+            setIsLoading(false);
+          };
+
+          const handleGetPepTalk = async () => {
+            setIsLoading(true);
+            const prompt = `Act as a warm, encouraging fitness partner named Jay. My daily routine shows I train 7 days a week with HIIT. Write a short, powerful pep talk celebrating this consistency and motivating me to keep up the great work.`;
             const jayResponseText = await callGeminiAPI(prompt);
             setMessages(prev => [...prev, { sender: 'jay', text: jayResponseText.trim() }]);
             setIsLoading(false);
           };
 
           if (!lifestyleData) {
-             return <div className="flex items-center justify-center h-screen bg-gray-100 text-gray-700">Initializing Fitness Partner...</div>;
+             return <div className="flex items-center justify-center h-screen bg-gray-100 text-gray-700">Initializing...</div>;
           }
 
           return (
             <div className="font-sans bg-white h-screen flex flex-col antialiased">
-                <UpdateDataModal 
-                    isOpen={isModalOpen}
-                    onClose={() => setIsModalOpen(false)}
-                    onUpdate={handleUpdateData}
-                    isLoading={modalIsLoading}
-                />
-                <header className="bg-blue-600 text-white p-4 text-center shadow-md z-10">
-                    <h1 className="text-2xl font-bold">Jay, Your Fitness Partner</h1>
+                <UpdateDataModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onUpdate={handleUpdateData} isLoading={modalIsLoading} />
+                <header className="bg-blue-600 text-white p-4 shadow-md z-10 flex justify-between items-center flex-wrap">
+                    <h1 className="text-xl md:text-2xl font-bold mr-4">Jay, Your Fitness Partner</h1>
+                    <div className="flex items-center mt-2 md:mt-0">
+                        <label htmlFor="model-select" className="text-sm mr-2 whitespace-nowrap">AI Model:</label>
+                        <select id="model-select" value={selectedModel} onChange={handleModelChange} className="bg-blue-700 text-white rounded-md p-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <option value="gemini-1.5-flash-latest">Gemini 1.5 Flash</option>
+                            <option value="gemini-1.5-pro-latest">Gemini 1.5 Pro</option>
+                            <option value="gemini-1.0-pro-latest">Gemini 1.0 Pro</option>
+                            <option value="aqa">AQA (for Q&A)</option>
+                        </select>
+                    </div>
                 </header>
                 <div className="flex-1 flex flex-row overflow-hidden">
                     <main className="flex-1 flex flex-col bg-gray-50">
                     <ChatWindow messages={messages} isLoading={isLoading} />
-                    <ActionButtons onGetMealIdeas={handleGetMealIdeas} onGetWorkoutSuggestion={handleGetWorkoutSuggestion} isLoading={isLoading} />
-                    <UserInput onSend={handleSend} isLoading={isLoading} onOpenModal={() => setIsModalOpen(true)} />
+                    <ActionButtons 
+                        onGetMealIdeas={handleGetMealIdeas} 
+                        onGetWorkoutSuggestion={handleGetWorkoutSuggestion}
+                        onAnalyzeSupplements={handleAnalyzeSupplements}
+                        onGetPepTalk={handleGetPepTalk} 
+                        isLoading={isLoading || cooldown > 0} 
+                    />
+                    <UserInput 
+                        onSend={handleSend} 
+                        isLoading={isLoading} 
+                        onOpenModal={() => setIsModalOpen(true)} 
+                        attachedImage={attachedImage} 
+                        setAttachedImage={setAttachedImage} 
+                        cooldown={cooldown} 
+                    />
                     </main>
                     <LifestyleSidebar data={lifestyleData} />
                 </div>
