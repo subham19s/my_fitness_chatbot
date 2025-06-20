@@ -136,9 +136,16 @@
 
         const Message = ({ sender, text, imageUrl }) => {
           const isJay = sender === 'jay';
+          // Updated markdown parser
           const simpleMarkdownParser = (rawText) => {
             if (!rawText) return '';
-            const html = rawText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br />');
+            const html = rawText
+              .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold mt-3 mb-2">$1</h3>')
+              .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold mt-4 mb-2">$1</h2>')
+              .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold mt-4 mb-2">$1</h1>')
+              .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+              .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italic for single asterisks
+              .replace(/\n/g, '<br />');
             return html;
           };
           const content = isJay ? <div dangerouslySetInnerHTML={{ __html: simpleMarkdownParser(text) }} /> : text;
@@ -254,7 +261,7 @@
               const newModel = e.target.value;
               const modelName = e.target.options[e.target.selectedIndex].text;
               setSelectedModel(newModel);
-              setCooldown(0); // Immediately reset cooldown on model change
+              setCooldown(0); 
               setMessages(prev => [...prev, { sender: 'jay', text: `Okay, I've switched my brain to the ${modelName} model for you.` }]);
           };
 
